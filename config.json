@@ -5,7 +5,8 @@
     "plugins": {
         "directory": "E:/develop/Projects/MyApp/src/plugins",
         "enabled": [
-            "shortcut_creator"
+            "shortcut_creator",
+            "test_plugin"
         ]
     },
     "ui_settings": {

@@ -4,10 +4,10 @@ from PySide6.QtWidgets import (
     QPushButton, QListWidget, QFileDialog, QLabel,
     QMessageBox, QProgressBar, QCheckBox
 )
-from plugins.shortcut_creator._shortcut_creator_worker import ShortcutCreatorWorker
+from plugins.shortcut_creator.shortcut_creator_worker import ShortcutCreatorWorker
 
 
-class ShortcutCreatorWindow(QWidget):
+class ShortcutCreatorWidget(QWidget):
     """插件主界面"""
 
     def __init__(self):
