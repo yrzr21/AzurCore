@@ -1,7 +1,6 @@
-from ._shortcut_creator_window import ShortcutCreatorWindow
+from plugins.shortcut_creator._shortcut_creator_window import ShortcutCreatorWindow
 
 
-# ShortcutCreatorPlugin
 # 在 target_dir 下为 file_paths 中的每个文件创建快捷方式
 # target_dir、file_paths 任一不存在则报错，并清除已创建的快捷方式，即原子操作
 class Plugin:
@@ -13,11 +12,6 @@ class Plugin:
 
     def setup_menu(self, parent_menu):
         """向主菜单添加功能项"""
-        # # 添加菜单项
-        # action = QAction("运行功能", parent_menu)
-        # action.triggered.connect(self.run_feature)
-        # parent_menu.addAction(action)
-
         self.action = parent_menu.addAction("批量创建快捷方式")
         self.action.triggered.connect(self.show_ui)
 

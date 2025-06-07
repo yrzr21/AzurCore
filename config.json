@@ -1,0 +1,23 @@
+{
+    "app_name": "\u6211\u7684\u8d85\u7ea7\u5e94\u7528",
+    "version": "1.0.0",
+    "root_dir": "E:/develop/Projects/MyApp/src",
+    "plugins": {
+        "directory": "E:/develop/Projects/MyApp/src/plugins",
+        "enabled": [
+            "shortcut_creator"
+        ]
+    },
+    "ui_settings": {
+        "recent_files": [
+            "D:/docs/project1.txt",
+            "C:/data/analysis.csv"
+        ]
+    },
+    "window_geometry": {
+        "x": 100,
+        "y": 100,
+        "width": 1200,
+        "height": 800
+    }
+}

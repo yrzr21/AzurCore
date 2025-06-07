@@ -1,61 +1,59 @@
 import importlib
 from pathlib import Path
+from core.config_manager import config
+
+
+# todo：plugin 互相依赖
 
 
 class PluginManager:
     def __init__(self):
+        self.plugin_root_dir = config["plugins"]["directory"]
+        self.enabled_plugins = config["plugins"]["enabled"]
+
         self.plugins = {}
-        self.plugin_dirs = {}  # 存储插件路径
 
-    def load_plugins(self, plugin_root_dir):
-        """加载指定目录下所有的插件文件夹"""
-        plugins_path = Path(plugin_root_dir)
+    def items(self):
+        return self.plugins.items()
 
-        # 遍历所有子目录
-        for plugin_dir in plugins_path.iterdir():
+    def load_plugins(self):
+        """遍历所有非_开头的文件夹，作为插件加载"""
+        iterdir = Path(self.plugin_root_dir).iterdir()
+        for plugin_dir in iterdir:
             if plugin_dir.is_dir() and not plugin_dir.name.startswith('_'):
                 self._load_plugin(plugin_dir)
 
-    def _load_plugin(self, plugin_dir):
-        """加载单个插件文件夹"""
+    def _load_plugin(self, plugin_dir: Path):
         plugin_name = plugin_dir.name
+        if plugin_name not in self.enabled_plugins:
+            print(f"跳过禁用插件: {plugin_name}")
+            return
 
+        entry_file = plugin_dir / "__init__.py"
+        if not entry_file.exists():
+            print(f"在 {plugin_dir} 中找不到插件入口文件")
+            return
+
+        # 动态导入模块
+        spec = importlib.util.spec_from_file_location(plugin_name, entry_file)
+        module = importlib.util.module_from_spec(spec)
         try:
-            # 查找插件入口文件
-            entry_file = None
-            possible_files = ["__init__.py", "plugin.py", plugin_name + ".py"]
-
-            for file in possible_files:
-                candidate = plugin_dir / file
-                if candidate.exists():
-                    entry_file = candidate
-                    break
-
-            if not entry_file:
-                print(f"在 {plugin_dir} 中找不到插件入口文件")
-                return
-
-            # 动态导入插件模块
-            module_name = f"plugins.{plugin_name}"  # 使用相对导入路径
-            spec = importlib.util.spec_from_file_location(module_name, entry_file)
-            module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
-
-            # 实例化插件主类
-            plugin_class = getattr(module, "Plugin")
-            plugin_instance = plugin_class()
-
-            # 存储插件实例及其目录路径
-            self.plugins[plugin_name] = plugin_instance
-            self.plugin_dirs[plugin_name] = plugin_dir
-
-            print(f"成功加载插件: {plugin_name}")
-
         except Exception as e:
-            print(f"加载插件{plugin_dir}失败: {e}")
+            print(f"加载插件 {plugin_dir} 失败: {e}")
+            import traceback
+            traceback.print_exc()
+            return
 
-    def get_plugin_resource(self, plugin_name, resource_path):
-        """获取插件资源文件路径"""
-        if plugin_name in self.plugin_dirs:
-            return str(self.plugin_dirs[plugin_name] / "resources" / resource_path)
-        return None
+        if not hasattr(module, "Plugin"):
+            print(f"在 {plugin_name} 中找不到属性 Plugin")
+            return
+
+        # 实例化并存储插件
+        plugin_instance = getattr(module, "Plugin")()
+        self.plugins[plugin_name] = plugin_instance
+
+        print(f"成功加载插件: {plugin_name}")
+
+
+plugins = PluginManager()
