@@ -25,4 +25,4 @@ class ConfigManager:
         return self.config[key]
 
 
-config = ConfigManager("E:\develop\Projects\MyApp\config.json")
+config = ConfigManager("E:\develop\Projects\AzurCore\config.json")
