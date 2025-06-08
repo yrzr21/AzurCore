@@ -1,7 +1,7 @@
 import os
 
 import pythoncom
-import win32com
+import win32com.client
 
 from core.base.base_task import BaseTask
 
@@ -62,6 +62,8 @@ class ShortcutCreationTask(BaseTask):
             self.created_files.append(lnk_path)
             return lnk_path
         except Exception as e:
+            import traceback
+            print(f"创建快捷方式失败: {file_name}\n{traceback.format_exc()}")
             raise RuntimeError(f"创建快捷方式失败: {file_name}") from e
 
     def _cleanup(self):
