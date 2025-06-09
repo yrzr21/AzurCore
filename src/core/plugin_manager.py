@@ -1,6 +1,6 @@
 import importlib
 from pathlib import Path
-from core.config_manager import config
+from core.utils.config_manager import config
 from core.utils.logger import logger
 
 

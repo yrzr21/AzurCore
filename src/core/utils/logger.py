@@ -3,7 +3,7 @@ import inspect
 import logging
 import os
 from datetime import datetime
-from core.config_manager import config
+from core.utils.config_manager import config
 
 
 class Logger:

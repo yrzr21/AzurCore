@@ -1,4 +1,4 @@
-from core.config_manager import config
+from core.utils.config_manager import config
 from core.plugin_manager import plugins
 from PySide6.QtWidgets import QMainWindow, QApplication, QWidget, QDockWidget, QListWidget, QVBoxLayout
 from PySide6.QtCore import Qt
