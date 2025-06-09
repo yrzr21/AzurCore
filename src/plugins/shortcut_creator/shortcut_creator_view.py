@@ -19,6 +19,7 @@ class ShortcutCreatorView(QWidget):
 
         self.init_ui()
         self.set_ui_state(busy=False)
+        self.setAcceptDrops(True)
 
     def init_ui(self):
         """create ui and connect signals"""
@@ -188,3 +189,24 @@ class ShortcutCreatorView(QWidget):
                 continue
             files.extend(os.path.join(root, f) for f in filenames)
         return files
+
+    from PySide6.QtCore import Qt
+    from PySide6.QtGui import QDragEnterEvent, QDropEvent
+
+    def dragEnterEvent(self, event: QDragEnterEvent):
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+
+    def dropEvent(self, event: QDropEvent):
+        if event.mimeData().hasUrls():
+            paths = []
+            for url in event.mimeData().urls():
+                path = url.toLocalFile()
+                if os.path.isfile(path):
+                    paths.append(path)
+                elif os.path.isdir(path):
+                    paths.extend(self._scan_folder(path))  # 添加文件夹内容
+            if paths:
+                self.file_list.addItems(paths)
+            event.acceptProposedAction()
+
