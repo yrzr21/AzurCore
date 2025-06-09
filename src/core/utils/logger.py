@@ -1,4 +1,5 @@
 # src/core/utils/logger.py
+import inspect
 import logging
 import os
 from datetime import datetime
@@ -12,6 +13,7 @@ class Logger:
         self.logger = None
         self.formatter = None
         self.log_path = None
+        self.use_module_tag = None
 
         self.init()
 
@@ -22,23 +24,17 @@ class Logger:
         self._setup_log_handler()
 
     # 日志输出接口
-    def debug(self, msg, *args, **kwargs):
-        self.logger.debug(msg, *args, **kwargs)
+    def info(self, msg):
+        self.logger.info(self._tag_msg(msg))
 
-    def info(self, msg, *args, **kwargs):
-        self.logger.info(msg, *args, **kwargs)
+    def warning(self, msg):
+        self.logger.warning(self._tag_msg(msg))
 
-    def warning(self, msg, *args, **kwargs):
-        self.logger.warning(msg, *args, **kwargs)
+    def error(self, msg):
+        self.logger.error(self._tag_msg(msg))
 
-    def error(self, msg, *args, **kwargs):
-        self.logger.error(msg, *args, **kwargs)
-
-    def critical(self, msg, *args, **kwargs):
-        self.logger.critical(msg, *args, **kwargs)
-
-    def exception(self, msg, *args, **kwargs):
-        self.logger.exception(msg, *args, **kwargs)
+    def debug(self, msg):
+        self.logger.debug(self._tag_msg(msg))
 
     def save_config(self):
         with config.config_lock:
@@ -55,7 +51,7 @@ class Logger:
 
     @staticmethod
     def _setup_logfile():
-        log_file = config["log"].get("log_file")
+        log_file = config["log"]["log_file"]
         if log_file and os.path.exists(log_file):
             return log_file
 
@@ -70,6 +66,7 @@ class Logger:
         """使用配置文件恢复当前 log 配置"""
         self.name = config["app_name"]
         self.level = getattr(logging, config["log"]["level"].upper())
+        self.use_module_tag = config["log"]["use_module_tag"]
 
         self.logger = logging.getLogger(self.name)
         self.logger.setLevel(self.level)  # 低于 level 的日志不会被记录
@@ -93,6 +90,26 @@ class Logger:
         file_handler = logging.FileHandler(self.log_path, encoding="utf-8")
         file_handler.setFormatter(self.formatter)
         self.logger.addHandler(file_handler)
+
+    def _tag_msg(self, msg):
+        """自动从调用栈中提取 类名.方法名 或 函数名"""
+        if not self.use_module_tag:
+            return msg
+
+        frame = inspect.currentframe()
+        outer = frame.f_back.f_back  # 跳过 _tag_msg 和 info 层
+        method_name = outer.f_code.co_name
+
+        # 尝试获取类名（如果是类方法）
+        instance = outer.f_locals.get('self', None)
+        if instance:
+            class_name = instance.__class__.__name__
+            tag = f"{class_name}.{method_name}"
+        else:
+            # 否则为模块级函数
+            tag = method_name
+
+        return f"[{tag}] {msg}"
 
 
 # 可能被多线程访问

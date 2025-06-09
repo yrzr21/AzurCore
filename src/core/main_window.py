@@ -2,6 +2,7 @@ from core.config_manager import config
 from core.plugin_manager import plugins
 from PySide6.QtWidgets import QMainWindow, QApplication, QWidget, QDockWidget, QListWidget, QVBoxLayout
 from PySide6.QtCore import Qt
+from core.utils.logger import logger
 
 
 class MainWindow(QMainWindow):
@@ -18,6 +19,7 @@ class MainWindow(QMainWindow):
 
         # 当前插件名记录
         self.current_plugin = None
+        logger.info("初始化成功")
 
     def init_ui(self):
         self.init_sidebar()
@@ -73,6 +75,7 @@ class MainWindow(QMainWindow):
 
         # 加载新插件界面
         self.container_layout.addWidget(new_widget)
+        logger.info(f"成功从插件 {self.current_plugin} 切换到 {plugin_name}")
         self.current_plugin = plugin_name
 
     def restore_config(self):
