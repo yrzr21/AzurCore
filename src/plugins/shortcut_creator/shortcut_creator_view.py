@@ -6,6 +6,11 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Signal
 from PySide6.QtGui import QDragEnterEvent, QDropEvent
 
+from core.widget.button_grid import ButtonGrid
+from core.widget.file_list import ListWidget
+from core.widget.input_bar import InputBar
+from core.widget.progress_bar import ProgressBar
+
 
 class ShortcutCreatorView(QWidget):
     """纯UI组件，不包含业务逻辑"""
@@ -18,82 +23,55 @@ class ShortcutCreatorView(QWidget):
         self.setWindowTitle("批量快捷方式创建器")
         self.setMinimumSize(600, 400)
 
+        self.main_layout = QVBoxLayout(self)
         self.init_ui()
         self.set_ui_state(busy=False)
         self.setAcceptDrops(True)
 
     def init_ui(self):
         """create ui and connect signals"""
-        # 主容器：垂直布局
-        self.layout = QVBoxLayout(self)
 
         # 目标目录选择
-        target_layout = QHBoxLayout()
-        target_layout.addWidget(QLabel("目标目录:"))
-        self.target_input = QLineEdit()
-        target_layout.addWidget(self.target_input)
-        self.target_browse_btn = QPushButton("浏览...")
-        target_layout.addWidget(self.target_browse_btn)
-        self.layout.addLayout(target_layout)
+        self.target_input = InputBar(
+            "目标目录:", "浏览...",
+            self._on_inputs_changed,
+            self._on_browse_target
+        )
 
         # 文件列表区域
-        file_list_layout = QHBoxLayout()
-        self.file_list = QListWidget()
-        file_list_layout.addWidget(self.file_list)
-
-        btn_layout = QVBoxLayout()
-        self.add_files_btn = QPushButton("添加文件")
-        self.add_folder_btn = QPushButton("添加文件夹")
-        self.add_folder_files_btn = QPushButton("添加文件夹下所有文件")
-        self.clear_list_btn = QPushButton("清空列表")
-
-        btn_layout.addWidget(self.add_files_btn)
-        btn_layout.addWidget(self.add_folder_btn)
-        btn_layout.addWidget(self.add_folder_files_btn)
-        btn_layout.addWidget(self.clear_list_btn)
-
-        file_list_layout.addLayout(btn_layout)
-        self.layout.addLayout(file_list_layout)
-
-        # 选项区域
-        option_layout = QHBoxLayout()
-        self.desktop_checkbox = QCheckBox("同时在桌面创建快捷方式")
-        option_layout.addWidget(self.desktop_checkbox)
-        self.layout.addLayout(option_layout)
+        file_area_layout = QHBoxLayout()
+        self.file_list = ListWidget(self._on_inputs_changed)
+        self.file_actions = ButtonGrid(
+            QVBoxLayout,
+            ["添加文件", "添加文件夹", "添加文件夹下所有文件", "清空列表"],
+            [
+                self._on_add_files,
+                self._on_add_folder,
+                self._on_add_folder_files,
+                self._on_clear_list
+            ]
+        )
+        file_area_layout.addWidget(self.file_list, 5)
+        file_area_layout.addWidget(self.file_actions, 1)
 
         # 进度条
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setRange(0, 100)
-        self.progress_bar.setVisible(False)
-        self.layout.addWidget(self.progress_bar)
+        self.progress_bar = ProgressBar(visible=False)
 
         # 操作按钮
-        action_layout = QHBoxLayout()
-        self.create_btn = QPushButton("创建快捷方式")
-        self.cancel_btn = QPushButton("取消")
+        self.confirmation_actions = ButtonGrid(
+            QHBoxLayout,
+            ["创建快捷方式", "取消"],
+            [
+                self._on_create_shortcuts,
+                self._on_cancel
+            ]
+        )
 
-        self.create_btn.setEnabled(False)
-        self.cancel_btn.setEnabled(False)
-
-        action_layout.addWidget(self.create_btn)
-        action_layout.addWidget(self.cancel_btn)
-        self.layout.addLayout(action_layout)
-
-        # 连接UI事件信号
-        self.target_browse_btn.clicked.connect(self._on_browse_target)
-        self.add_files_btn.clicked.connect(self._on_add_files)
-        self.add_folder_btn.clicked.connect(self._on_add_folder)
-        self.add_folder_files_btn.clicked.connect(self._on_add_folder_files)
-        self.clear_list_btn.clicked.connect(self._on_clear_list)
-
-        # 触发服务层事件
-        self.create_btn.clicked.connect(self._on_create_shortcuts)
-        self.cancel_btn.clicked.connect(self._on_cancel)
-
-        # 输入变化监听
-        self.target_input.textChanged.connect(self._on_inputs_changed)
-        self.file_list.model().rowsInserted.connect(self._on_inputs_changed)
-        self.file_list.model().rowsRemoved.connect(self._on_inputs_changed)
+        # 添加到主布局
+        self.main_layout.addWidget(self.target_input)
+        self.main_layout.addLayout(file_area_layout)
+        self.main_layout.addWidget(self.progress_bar)
+        self.main_layout.addWidget(self.confirmation_actions)
 
     def get_ui_data(self):
         """获取用户输入数据"""
@@ -104,7 +82,7 @@ class ShortcutCreatorView(QWidget):
 
     # UI更新方法
     def update_progress(self, value):
-        self.progress_bar.setValue(value)
+        self.progress_bar.set_value(value)
 
     def show_message(self, title, message, is_error=False):
         """显示消息弹窗"""
@@ -116,23 +94,22 @@ class ShortcutCreatorView(QWidget):
     def set_ui_state(self, busy=False):
         """设置UI状态 (busy=True表示操作中)"""
         self.target_input.setEnabled(not busy)
+
         self.file_list.setEnabled(not busy)
-        self.add_files_btn.setEnabled(not busy)
-        self.add_folder_btn.setEnabled(not busy)
-        self.clear_list_btn.setEnabled(not busy)
-        self.desktop_checkbox.setEnabled(not busy)
-        self.create_btn.setEnabled(not busy)
-        self.cancel_btn.setEnabled(busy)
-        self.progress_bar.setVisible(busy)
+        self.file_actions.set_all_enabled(not busy)
+
+        self.confirmation_actions.set_button_enabled("创建快捷方式", not busy)
+        self.confirmation_actions.set_button_enabled("取消", busy)
+        self.progress_bar.set_visible(busy)
 
         if not busy:
             # 清空进度条
-            self.progress_bar.setValue(0)
+            self.progress_bar.set_value(0)
 
     def reset_ui(self):
         """重置UI到初始状态"""
         self.set_ui_state(busy=False)
-        self.progress_bar.setValue(0)
+        self.progress_bar.set_value(0)
 
     # ui signal handler
 
@@ -170,7 +147,8 @@ class ShortcutCreatorView(QWidget):
 
     def _on_inputs_changed(self):
         data = self.get_ui_data()
-        self.create_btn.setEnabled(
+        self.confirmation_actions.set_button_enabled(
+            "创建快捷方式",
             bool(data["target_dir"]) and bool(data["file_paths"])
         )
 
@@ -200,7 +178,6 @@ class ShortcutCreatorView(QWidget):
             files.extend(os.path.join(root, f) for f in filenames)
         return files
 
-
     def dragEnterEvent(self, event: QDragEnterEvent):
         if event.mimeData().hasUrls():
             event.acceptProposedAction()
@@ -220,5 +197,3 @@ class ShortcutCreatorView(QWidget):
         existing = set(self.file_list.item(i).text() for i in range(self.file_list.count()))
         new_items = [p for p in paths if p not in existing]
         self.file_list.addItems(new_items)
-
-
