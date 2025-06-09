@@ -4,6 +4,7 @@ from PySide6.QtWidgets import (
     QPushButton, QListWidget, QLabel, QProgressBar, QCheckBox, QFileDialog, QMessageBox
 )
 from PySide6.QtCore import Signal
+from PySide6.QtGui import QDragEnterEvent, QDropEvent
 
 
 class ShortcutCreatorView(QWidget):
@@ -43,10 +44,12 @@ class ShortcutCreatorView(QWidget):
         btn_layout = QVBoxLayout()
         self.add_files_btn = QPushButton("添加文件")
         self.add_folder_btn = QPushButton("添加文件夹")
+        self.add_folder_files_btn = QPushButton("添加文件夹下所有文件")
         self.clear_list_btn = QPushButton("清空列表")
 
         btn_layout.addWidget(self.add_files_btn)
         btn_layout.addWidget(self.add_folder_btn)
+        btn_layout.addWidget(self.add_folder_files_btn)
         btn_layout.addWidget(self.clear_list_btn)
 
         file_list_layout.addLayout(btn_layout)
@@ -80,6 +83,7 @@ class ShortcutCreatorView(QWidget):
         self.target_browse_btn.clicked.connect(self._on_browse_target)
         self.add_files_btn.clicked.connect(self._on_add_files)
         self.add_folder_btn.clicked.connect(self._on_add_folder)
+        self.add_folder_files_btn.clicked.connect(self._on_add_folder_files)
         self.clear_list_btn.clicked.connect(self._on_clear_list)
 
         # 触发服务层事件
@@ -142,6 +146,12 @@ class ShortcutCreatorView(QWidget):
         if items:
             self.file_list.addItems(items)
 
+    def _on_add_folder_files(self):
+        folder = self.browse_folder("选择包含文件的文件夹")
+        if folder:
+            files = self._scan_folder(folder)
+            self.add_unique_items(files)
+
     def _on_add_folder(self):
         folder = self.browse_folder()
         if folder:
@@ -190,8 +200,6 @@ class ShortcutCreatorView(QWidget):
             files.extend(os.path.join(root, f) for f in filenames)
         return files
 
-    from PySide6.QtCore import Qt
-    from PySide6.QtGui import QDragEnterEvent, QDropEvent
 
     def dragEnterEvent(self, event: QDragEnterEvent):
         if event.mimeData().hasUrls():
@@ -202,11 +210,15 @@ class ShortcutCreatorView(QWidget):
             paths = []
             for url in event.mimeData().urls():
                 path = url.toLocalFile()
-                if os.path.isfile(path):
+                if os.path.isfile(path) or os.path.isdir(path):
                     paths.append(path)
-                elif os.path.isdir(path):
-                    paths.extend(self._scan_folder(path))  # 添加文件夹内容
             if paths:
                 self.file_list.addItems(paths)
             event.acceptProposedAction()
+
+    def add_unique_items(self, paths):
+        existing = set(self.file_list.item(i).text() for i in range(self.file_list.count()))
+        new_items = [p for p in paths if p not in existing]
+        self.file_list.addItems(new_items)
+
 
