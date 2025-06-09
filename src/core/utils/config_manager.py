@@ -32,4 +32,4 @@ class ConfigManager:
             self._config[key] = value
 
 
-config = ConfigManager("/config.json")
+config = ConfigManager("E:\develop\Projects\AzurCore\config.json")
