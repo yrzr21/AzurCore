@@ -41,16 +41,17 @@ class Logger:
         self.logger.exception(msg, *args, **kwargs)
 
     def save_config(self):
-        config["log"] = {
-            "log_dir": os.path.dirname(self.log_path),
-            "log_file": self.log_path,
-            "level": self.level,
-            "formatter": {
-                "fmt": self.formatter._fmt,
-                "datefmt": self.formatter.datefmt,
-            },
-            "propagate": self.logger.propagate,
-        }
+        with config.config_lock:
+            config["log"] = {
+                "log_dir": os.path.dirname(self.log_path),
+                "log_file": self.log_path,
+                "level": self.level,
+                "formatter": {
+                    "fmt": self.formatter._fmt,
+                    "datefmt": self.formatter.datefmt,
+                },
+                "propagate": self.logger.propagate,
+            }
 
     @staticmethod
     def _setup_logfile():

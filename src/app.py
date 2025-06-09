@@ -2,6 +2,7 @@ from PySide6.QtWidgets import QApplication
 
 from core.main_window import MainWindow
 from core.plugin_manager import plugins
+from core.config_manager import config
 
 
 class MyApp():
@@ -17,6 +18,9 @@ class MyApp():
 
     def run(self):
         self.app.exec()
+
+    def __del__(self):
+        config.save()
 
 
 if __name__ == "__main__":

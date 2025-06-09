@@ -99,13 +99,10 @@ class MainWindow(QMainWindow):
             "width": geometry.width(),
             "height": geometry.height()
         }
-        config.save()
 
     def closeEvent(self, event):
         """窗口关闭，即程序关闭，此时保存当前配置"""
         super().closeEvent(event)
-
-        config.save()
 
         # 退出应用
         QApplication.quit()
