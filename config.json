@@ -2,6 +2,16 @@
     "app_name": "\u6211\u7684\u8d85\u7ea7\u5e94\u7528",
     "version": "1.0.0",
     "root_dir": "E:/develop/Projects/AzurCore/src",
+    "log": {
+        "log_dir": "E:/develop/Projects/AzurCore/resource/log",
+        "log_file": null,
+        "level": "DEBUG",
+        "formatter": {
+            "fmt": "[%(asctime)s] [%(levelname)s] %(message)s",
+            "dateformat": "%Y-%m-%d %H:%M:%S"
+        },
+        "propagate": false
+    },
     "plugins": {
         "directory": "E:/develop/Projects/AzurCore/src/plugins",
         "enabled": [
