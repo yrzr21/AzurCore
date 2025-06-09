@@ -12,7 +12,6 @@ class ShortcutCreatorService(BaseService):
 
     def create_shortcuts(self, target_dir, file_paths):
         """创建快捷方式任务"""
-        print("ShortcutCreatorService")
         task = ShortcutCreationTask(target_dir, file_paths)
         self.deliver(task)
 

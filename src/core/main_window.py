@@ -57,7 +57,7 @@ class MainWindow(QMainWindow):
 
         plugin = plugins.plugins.get(plugin_name)
         if not plugin:
-            print(f"插件 {plugin_name} 不存在")
+            logger.error(f"插件 {plugin_name} 不存在")
             return
 
         # 从缓存或创建插件界面
@@ -108,4 +108,5 @@ class MainWindow(QMainWindow):
         super().closeEvent(event)
 
         # 退出应用
+        logger.info("退出应用")
         QApplication.quit()

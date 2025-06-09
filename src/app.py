@@ -1,8 +1,8 @@
 from PySide6.QtWidgets import QApplication
 
+from core.config_manager import config
 from core.main_window import MainWindow
 from core.plugin_manager import plugins
-from core.config_manager import config
 
 
 class MyApp():

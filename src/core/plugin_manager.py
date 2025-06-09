@@ -1,6 +1,7 @@
 import importlib
 from pathlib import Path
 from core.config_manager import config
+from core.utils.logger import logger
 
 
 # todo：plugin 互相依赖
@@ -26,12 +27,12 @@ class PluginManager:
     def _load_plugin(self, plugin_dir: Path):
         plugin_name = plugin_dir.name
         if plugin_name not in self.enabled_plugins:
-            print(f"跳过禁用插件: {plugin_name}")
+            logger.info(f"跳过禁用插件: {plugin_name}")
             return
 
         entry_file = plugin_dir / "__init__.py"
         if not entry_file.exists():
-            print(f"在 {plugin_dir} 中找不到插件入口文件")
+            logger.error(f"在 {plugin_dir} 中找不到插件入口文件")
             return
 
         # 动态导入模块
@@ -40,20 +41,19 @@ class PluginManager:
         try:
             spec.loader.exec_module(module)
         except Exception as e:
-            print(f"加载插件 {plugin_dir} 失败: {e}")
             import traceback
-            traceback.print_exc()
+            logger.error(f"加载插件 {plugin_dir} 失败: {e}\n{traceback.print_exc()}")
             return
 
         if not hasattr(module, "Plugin"):
-            print(f"在 {plugin_name} 中找不到属性 Plugin")
+            logger.error(f"在 {plugin_name} 中找不到属性 Plugin")
             return
 
         # 实例化并存储插件
         plugin_instance = getattr(module, "Plugin")()
         self.plugins[plugin_name] = plugin_instance
 
-        print(f"成功加载插件: {plugin_name}")
+        logger.info(f"成功加载插件: {plugin_name}")
 
 
 plugins = PluginManager()

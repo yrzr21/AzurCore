@@ -4,6 +4,7 @@ import pythoncom
 import win32com.client
 
 from core.base.base_task import BaseTask
+from core.utils.logger import logger
 
 
 class ShortcutCreationTask(BaseTask):
@@ -13,11 +14,11 @@ class ShortcutCreationTask(BaseTask):
         super().__init__("ShortcutCreationTask")
         self.target_dir = os.path.abspath(target_dir)
         self.file_paths = [os.path.abspath(p) for p in file_paths]
+        logger.debug(f"target_dir={target_dir}, file_paths={file_paths}")
         self.created_files = []
 
     def execute(self):
         """执行创建任务"""
-        print("execute ShortcutCreationTask")
         pythoncom.CoInitialize()
 
         total_files = len(self.file_paths)
@@ -60,11 +61,12 @@ class ShortcutCreationTask(BaseTask):
             shortcut.WorkingDirectory = os.path.dirname(target_path)
             shortcut.Save()
             self.created_files.append(lnk_path)
+
+            logger.debug(f"成功在{output_dir} 为 {target_path} 创建快捷方式: {lnk_path}")
             return lnk_path
         except Exception as e:
             import traceback
-            print(f"创建快捷方式失败: {file_name}\n{traceback.format_exc()}")
-            raise RuntimeError(f"创建快捷方式失败: {file_name}") from e
+            raise RuntimeError(f"创建快捷方式失败: {file_name}\n{traceback.format_exc()}") from e
 
     def _cleanup(self):
         """清理已创建的文件（业务逻辑）"""
@@ -74,4 +76,5 @@ class ShortcutCreationTask(BaseTask):
                     os.remove(file_path)
             except Exception:
                 pass
+        logger.debug(f"成功清理当前操作已创建的快捷方式：{self.created_files}")
         self.created_files = []

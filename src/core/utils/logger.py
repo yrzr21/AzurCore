@@ -7,6 +7,7 @@ from core.config_manager import config
 
 
 class Logger:
+    """一般集中在 task、controller、系统关键节点"""
     def __init__(self):
         self.level = None
         self.name = None
@@ -114,3 +115,4 @@ class Logger:
 
 # 可能被多线程访问
 logger = Logger()
+logger.info("logger 初始化成功")

@@ -1,7 +1,7 @@
 from core.worker_manager import worker_manager
 from PySide6.QtCore import Signal, QObject
 from core.base.base_task import BaseTask
-
+from core.utils.logger import logger
 
 
 class BaseService(QObject):
@@ -35,13 +35,12 @@ class BaseService(QObject):
         task.finished.connect(self.on_task_finished)
         task.error.connect(self.on_task_error)
 
-        print("deliver")
         worker_manager.execute(task)
 
     def cancel_task(self, task: BaseTask):
         """终止任务并断连"""
         if task not in self.active_tasks or not task.is_running:
-            print(self, ": cancelling unactivated task", task)
+            logger.error(f"{self}: cancelling unactivated task {task}")
             return
 
         task.request_cancel()
@@ -66,7 +65,7 @@ class BaseService(QObject):
 
     def on_task_error(self, task, message):
         """处理任务错误"""
-        print(f"error{message}")
+        logger.info(f"{task} error: {message}")
 
         self._disconnect_and_remove_task(task)
         self.error_occurred.emit(message)

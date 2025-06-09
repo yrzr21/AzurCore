@@ -1,12 +1,14 @@
 from typing import Any
 
 from PySide6.QtCore import QObject, QRunnable, QThreadPool, Signal
+from core.utils.logger import logger
 
 
 class BaseTask(QObject, QRunnable):
     """
     任务实体基类，在一个新线程中
     子类需要使用 progress 汇报进度、实现 execute 接口
+    子类中出现的异常，要么自行处理+logger，要么 raise 异常
     """
 
     started = Signal()
@@ -31,17 +33,19 @@ class BaseTask(QObject, QRunnable):
 
     def run(self):
         """任务执行入口"""
-        print("execute BaseTask")
         try:
+            logger.info(f"{self.name} 开始执行")
             self.is_running = True
             self.started.emit()
             result = self.execute()
             self.is_running = False
 
             success = not self._is_canceled
+            logger.info(f"{self.name} 执行完毕")
             self.finished.emit(self, success, result)
 
         except Exception as e:
+            logger.error(f"{self.name} 执行失败，出现异常：{str(e)}")
             self.error.emit(self, f"任务失败: {str(e)}")
 
     def execute(self):
@@ -54,6 +58,7 @@ class BaseTask(QObject, QRunnable):
 
     def request_cancel(self):
         """终止执行，仅设置状态"""
+        logger.debug(f"{self.name} requested cancel")
         self._is_canceled = True
 
     def __str__(self):

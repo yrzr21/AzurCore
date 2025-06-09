@@ -1,5 +1,6 @@
 from plugins.shortcut_creator.shortcut_creator_service import ShortcutCreatorService
 from plugins.shortcut_creator.shortcut_creator_view import ShortcutCreatorView
+from core.utils.logger import logger
 
 
 class ShortcutCreatorController:
@@ -26,13 +27,14 @@ class ShortcutCreatorController:
     # ui 事件
     def on_create_requested(self, data):
         """处理创建请求"""
-        print("on_create_requested, data=",data)
+        logger.debug(f"argument = {data}")
         # 验证输入合法性
         validate = self.service.validate_input(
             data["target_dir"],
             data["file_paths"]
         )
         if not validate:
+            logger.warning(f"invalid argument: {data}")
             return
 
         self.service.create_shortcuts(
@@ -42,6 +44,7 @@ class ShortcutCreatorController:
 
     def on_cancel_requested(self):
         """处理取消请求"""
+        logger.info("正在取消创建快捷方式")
         self.service.cancel_all()
 
     # 服务事件
@@ -51,9 +54,8 @@ class ShortcutCreatorController:
 
     def on_task_completed(self, success, result):
         """任务完成处理"""
-        print(f"result={result}")
+        logger.debug(f"state={success}, result={result}")
         count = result
-        print(f"count={count}")
 
         self.view.set_ui_state(busy=False)
         if success:

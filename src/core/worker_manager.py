@@ -1,5 +1,6 @@
 from PySide6.QtCore import QObject, QThreadPool
 from core.base.base_task import BaseTask
+from core.utils.logger import logger
 
 
 class WorkerManager(QObject):
@@ -19,7 +20,7 @@ class WorkerManager(QObject):
 
     def execute(self, task: BaseTask):
         """执行任务"""
-        print("WorkerManager:execute")
+        logger.debug(f"new task:{task}")
         self.thread_pool.start(task)
 
     def wait_for_all_done(self, timeout=-1):
