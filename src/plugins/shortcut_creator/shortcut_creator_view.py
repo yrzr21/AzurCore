@@ -6,7 +6,7 @@ from PySide6.QtCore import Signal
 from PySide6.QtGui import QDragEnterEvent, QDropEvent
 
 from core.utils.logger import logger
-from core.utils.File import browse_folder, open_files, scan_folder_files
+from core.utils.file import browse_folder, open_files, scan_folder_files
 from core.widget.button_grid import ButtonGrid
 from core.widget.file_list import ListWidget
 from core.widget.input_bar import InputBar
