@@ -41,7 +41,7 @@ class ShortcutCreatorView(QWidget):
 
         # 文件列表区域
         file_area_layout = QHBoxLayout()
-        self.file_list = ListWidget(self._on_inputs_changed)
+        self.file_list = ListWidget(row_handler=self._on_inputs_changed)
         self.file_actions = ButtonGrid(
             QVBoxLayout,
             ["添加文件", "添加文件夹", "添加文件夹下所有文件", "清空列表"],
@@ -83,7 +83,7 @@ class ShortcutCreatorView(QWidget):
 
     # UI更新方法
     def update_progress(self, value):
-        self.progress_bar.set_value(value)
+        self.progress_bar.setValue(value)
 
     def show_message(self, title, message, is_error=False):
         """显示消息弹窗"""
@@ -101,16 +101,16 @@ class ShortcutCreatorView(QWidget):
 
         self.confirmation_actions.set_button_enabled("创建快捷方式", not busy)
         self.confirmation_actions.set_button_enabled("取消", busy)
-        self.progress_bar.set_visible(busy)
+        self.progress_bar.setVisible(busy)
 
         if not busy:
             # 清空进度条
-            self.progress_bar.set_value(0)
+            self.progress_bar.setValue(0)
 
     def reset_ui(self):
         """重置UI到初始状态"""
         self.set_ui_state(busy=False)
-        self.progress_bar.set_value(0)
+        self.progress_bar.setValue(0)
 
     # ui signal handler
     def _on_inputs_changed(self):

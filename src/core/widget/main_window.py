@@ -3,6 +3,8 @@ from core.plugin_manager import plugins
 from PySide6.QtWidgets import QMainWindow, QApplication, QWidget, QDockWidget, QListWidget, QVBoxLayout
 from PySide6.QtCore import Qt
 from core.utils.logger import logger
+from core.widget.dock import Dock
+from core.widget.file_list import ListWidget
 
 
 class MainWindow(QMainWindow):
@@ -26,12 +28,14 @@ class MainWindow(QMainWindow):
         self.init_menu_bar()
 
     def init_sidebar(self):
+        self.plugin_list = ListWidget(
+            current_text_changed_handler=self.switch_plugin
+        )
+
         # 侧边栏
-        self.dock = QDockWidget("插件", self)
-        self.dock.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
-        self.plugin_list = QListWidget()
-        self.plugin_list.currentTextChanged.connect(self.switch_plugin)
-        self.dock.setWidget(self.plugin_list)
+        self.dock = Dock(
+            "插件", Qt.LeftDockWidgetArea, self.plugin_list
+        )
         self.addDockWidget(Qt.LeftDockWidgetArea, self.dock)
 
         for plugin_name, plugin in plugins.items():

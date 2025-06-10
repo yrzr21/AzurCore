@@ -4,10 +4,7 @@ from core.utils.logger import logger
 
 
 class ShortcutCreatorController:
-    """
-    ui 与 service 的适配器，处理事件
-    验证输入合法性
-    """
+    """service 与 ui&其他插件的适配器"""
 
     def __init__(self, view: ShortcutCreatorView, service: ShortcutCreatorService):
         self.view = view
@@ -24,30 +21,31 @@ class ShortcutCreatorController:
         # 直接绑到 view
         service.progress_updated.connect(self.view.update_progress)
 
+    # 对外接口
+    def create_shortcut(self, target_dir, file_paths):
+        if not self.service.validate_input(target_dir, file_paths):
+            logger.warning(f"invalid argument: {target_dir}, {file_paths}")
+            return False
+
+        self.service.create_shortcuts(target_dir, file_paths)
+        return True
+
     # ui 事件
     def on_create_requested(self, data):
         """处理创建请求"""
-        logger.debug(f"argument = {data}")
-        # 验证输入合法性
-        validate = self.service.validate_input(
+        success = self.create_shortcut(
             data["target_dir"],
             data["file_paths"]
         )
-        if not validate:
-            logger.warning(f"invalid argument: {data}")
-            return
-
-        self.service.create_shortcuts(
-            data["target_dir"],
-            data["file_paths"]
-        )
+        if not success:
+            self.view.show_message("错误", "创建快捷方式失败", True)
 
     def on_cancel_requested(self):
         """处理取消请求"""
         logger.info("正在取消创建快捷方式")
         self.service.cancel_all()
 
-    # 服务事件
+    # 任务状态监听 handler
     def on_task_started(self):
         """任务开始处理"""
         self.view.set_ui_state(busy=True)
