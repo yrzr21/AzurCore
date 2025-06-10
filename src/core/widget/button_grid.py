@@ -1,5 +1,7 @@
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QPushButton
 
+from core.utils.logger import logger
+
 
 class ButtonGrid(QWidget):
     def __init__(self, layout_class, button_texts, button_handlers):

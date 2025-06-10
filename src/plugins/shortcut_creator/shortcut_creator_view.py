@@ -1,11 +1,12 @@
 import os
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLineEdit,
-    QPushButton, QListWidget, QLabel, QProgressBar, QCheckBox, QFileDialog, QMessageBox
+    QWidget, QVBoxLayout, QHBoxLayout, QFileDialog, QMessageBox
 )
 from PySide6.QtCore import Signal
 from PySide6.QtGui import QDragEnterEvent, QDropEvent
 
+from core.utils.logger import logger
+from core.utils.File import browse_folder, open_files, scan_folder_files
 from core.widget.button_grid import ButtonGrid
 from core.widget.file_list import ListWidget
 from core.widget.input_bar import InputBar
@@ -112,27 +113,33 @@ class ShortcutCreatorView(QWidget):
         self.progress_bar.set_value(0)
 
     # ui signal handler
+    def _on_inputs_changed(self):
+        data = self.get_ui_data()
+        self.confirmation_actions.set_button_enabled(
+            "创建快捷方式",
+            bool(data["target_dir"]) and bool(data["file_paths"])
+        )
 
     def _on_browse_target(self):
-        directory = self.browse_folder()
+        directory = browse_folder(self, "选择目录")
+        logger.debug(f"选择的文件夹: {directory}")
         if directory:
             self.target_input.setText(directory)
 
     def _on_add_files(self):
-        items = self.open_files()
+        items = open_files(self, "选择文件")
         if items:
             self.file_list.addItems(items)
 
-    def _on_add_folder_files(self):
-        folder = self.browse_folder("选择包含文件的文件夹")
-        if folder:
-            files = self._scan_folder(folder)
-            self.add_unique_items(files)
-
     def _on_add_folder(self):
-        folder = self.browse_folder()
+        folder = browse_folder(self, "选择目录")
         if folder:
-            files = self._scan_folder(folder)
+            self.file_list.addItem(folder)
+
+    def _on_add_folder_files(self):
+        folder = browse_folder(self, "选择包含文件的文件夹")
+        if folder:
+            files, _ = scan_folder_files(folder, max_depth=1000)
             self.file_list.addItems(files)
 
     def _on_clear_list(self):
@@ -145,39 +152,7 @@ class ShortcutCreatorView(QWidget):
     def _on_cancel(self):
         self.cancel_requested.emit()
 
-    def _on_inputs_changed(self):
-        data = self.get_ui_data()
-        self.confirmation_actions.set_button_enabled(
-            "创建快捷方式",
-            bool(data["target_dir"]) and bool(data["file_paths"])
-        )
-
-    # ui helpers
-    def browse_folder(self, title="选择目录", start_path="~"):
-        """打开目录选择对话框"""
-        return self._open_dialog(QFileDialog.getExistingDirectory, title, start_path)
-
-    def open_files(self, title="选择文件", start_path="~"):
-        """打开文件选择对话框"""
-        files, _ = self._open_dialog(QFileDialog.getOpenFileNames, title, start_path)
-        return files or []
-
-    def _open_dialog(self, dialog_func, title, start_path):
-        """通用对话框打开方法"""
-        start_path = os.path.expanduser(start_path)
-        result = dialog_func(self, title, start_path)
-        return result if result else None
-
-    def _scan_folder(self, folder_path, max_depth=2):
-        """扫描文件夹中的文件 (UI工具方法)"""
-        files = []
-        for root, _, filenames in os.walk(folder_path):
-            depth = root.replace(folder_path, "").count(os.sep)
-            if max_depth is not None and depth >= max_depth:
-                continue
-            files.extend(os.path.join(root, f) for f in filenames)
-        return files
-
+    # 重写拖拽事件
     def dragEnterEvent(self, event: QDragEnterEvent):
         if event.mimeData().hasUrls():
             event.acceptProposedAction()
@@ -192,8 +167,3 @@ class ShortcutCreatorView(QWidget):
             if paths:
                 self.file_list.addItems(paths)
             event.acceptProposedAction()
-
-    def add_unique_items(self, paths):
-        existing = set(self.file_list.item(i).text() for i in range(self.file_list.count()))
-        new_items = [p for p in paths if p not in existing]
-        self.file_list.addItems(new_items)

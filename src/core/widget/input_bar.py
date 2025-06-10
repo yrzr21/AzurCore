@@ -2,7 +2,10 @@ from PySide6.QtWidgets import QWidget, QHBoxLayout, QLabel, QLineEdit, QPushButt
 
 
 class InputBar(QWidget):
-    """QLabel + QLineEdit + QPushButton"""
+    """
+    QLabel + QLineEdit + QPushButton
+    继续封装 InputBar 不是很明智（例如使用默认 handler），因为 handler 一般与业务逻辑紧耦合
+    """
 
     def __init__(self, label_text="", button_text="Click", input_changed_handler=None, button_handler=None):
         super().__init__()

@@ -25,6 +25,10 @@ class ListWidget(QWidget):
         """设置组件启用状态"""
         self.list_widget.setEnabled(enabled)
 
+    def addItem(self, item):
+        """添加单个项目"""
+        self.list_widget.addItem(item)
+
     def addItems(self, items):
         """批量添加项目"""
         self.list_widget.addItems(items)
