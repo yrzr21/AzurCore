@@ -4,6 +4,23 @@ from PySide6.QtWidgets import QFileDialog, QWidget
 
 from core.utils.logger import logger
 
+import subprocess
+import platform
+import os
+
+
+def open_in_default(file_path):
+    """使用系统默认程序打开文件，支持跨平台"""
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"文件不存在: {file_path}")
+
+    if platform.system() == "Windows":
+        os.startfile(file_path)
+    elif platform.system() == "Darwin":  # macOS
+        subprocess.run(["open", file_path], check=True)
+    else:  # Linux/Unix
+        subprocess.run(["xdg-open", file_path], check=True)
+
 
 def valid_dir(path):
     """检查路径是否是有效的文件夹"""

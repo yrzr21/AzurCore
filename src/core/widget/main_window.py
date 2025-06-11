@@ -2,6 +2,8 @@ from core.utils.config_manager import config
 from core.plugin_manager import plugins
 from PySide6.QtWidgets import QMainWindow, QApplication, QWidget, QDockWidget, QListWidget, QVBoxLayout
 from PySide6.QtCore import Qt
+
+from core.utils.file import open_in_default
 from core.utils.logger import logger
 from core.widget.dock import Dock
 from core.widget.file_list import ListWidget
@@ -45,15 +47,17 @@ class MainWindow(QMainWindow):
 
     def init_menu_bar(self):
         menu_bar = self.menuBar()
-
-        file_menu = menu_bar.addMenu("&文件")
+        # layer 0
+        file_menu = menu_bar.addMenu("文件")
+        # layer 1
+        recent_menu = file_menu.addMenu("最近文件")
         recent_files = config["ui_settings"]["recent_files"]
-        if recent_files:
-            recent_menu = file_menu.addMenu("最近文件")
-            for file_path in recent_files:
-                recent_menu.addAction(file_path)
+        for file_path in recent_files:
+            # 使用 lambda 绑定默认参数
+            recent_menu.addAction(file_path, lambda: open_in_default(file_path))
 
-        options_menu = menu_bar.addMenu("&选项")
+        # layer 0
+        menu_bar.addMenu("选项")
 
     def switch_plugin(self, plugin_name):
         if hasattr(self, 'current_plugin') and self.current_plugin == plugin_name:
