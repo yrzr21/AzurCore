@@ -1,3 +1,4 @@
+from core.utils.timeout_timer import TimeoutTimer
 from core.worker_manager import worker_manager
 from PySide6.QtCore import Signal, QObject
 from core.base.base_task import BaseTask
@@ -78,3 +79,39 @@ class BaseService(QObject):
 
     def __str__(self):
         return self.name
+
+
+class BatchedService(BaseService):
+    """
+    批量任务服务，将多个任务打包成一个任务
+    任务取消：request_cancel，task 尽快收尾工作，并触发信号
+    任务完成/错误：在 handler 中断开连接与从 active_tasks 中移除
+    """
+
+    def __init__(self, name, interval, max_batch_size):
+        super().__init__(name)
+
+        self.timeout_timer = TimeoutTimer(interval, self._do_deliver)
+        self.interval = interval
+        self.max_batch_size = max_batch_size
+        self.batch_size = 0
+
+        self.tasks = []
+
+    def deliver(self, task: BaseTask):
+        if self.batch_size >= self.max_batch_size:
+            self._do_deliver()
+        else:
+            self.tasks.append(task)
+
+    def _do_deliver(self):
+        if not self.tasks:
+            return
+        self.timeout_timer.stop()
+
+        for task in self.tasks:
+            super().deliver(task)
+        self.batch_size = 0
+        self.tasks.clear()
+
+        self.timeout_timer.start()
