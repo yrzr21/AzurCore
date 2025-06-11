@@ -88,21 +88,24 @@ class BatchedService(BaseService):
     任务完成/错误：在 handler 中断开连接与从 active_tasks 中移除
     """
 
-    def __init__(self, name, interval, max_batch_size):
+    def __init__(self, name, interval, max_load):
         super().__init__(name)
-
         self.timeout_timer = TimeoutTimer(interval, self._do_deliver)
-        self.interval = interval
-        self.max_batch_size = max_batch_size
-        self.batch_size = 0
+
+        # 大于 max_load 或定时器触发，则立即交付
+        self.current_load = 0
+        self.max_load = max_load
 
         self.task_queue = []
 
+    def load_size(self, task):
+        """评估任务载荷，子类应重写此方法"""
+        raise NotImplementedError("子类必须实现 load_point 方法")
+
     def deliver(self, task: BaseTask):
-        if self.batch_size >= self.max_batch_size:
+        self._enqueue(task)
+        if self.current_load >= self.max_load:
             self._do_deliver()
-        else:
-            self.task_queue.append(task)
 
     def _do_deliver(self):
         if not self.task_queue:
@@ -115,3 +118,14 @@ class BatchedService(BaseService):
         self.task_queue.clear()
 
         self.timeout_timer.start()
+
+    def _enqueue(self, task):
+        """评估载荷并入队"""
+        self.current_load += self.load_size(task)
+        self.task_queue.append(task)
+
+        task.started.connect(self.on_task_started)
+        task.progress.connect(self.on_progress_updated)
+        # task 运行完毕后 会自动通知 controller
+        task.finished.connect(self.on_task_finished)
+        task.error.connect(self.on_task_error)

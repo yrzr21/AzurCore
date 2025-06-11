@@ -18,3 +18,7 @@ class TimeoutTimer:
 
     def start(self):
         self._timer.start()
+
+
+def benchmark_iterations(func):
+    pass
