@@ -1,6 +1,6 @@
 import os
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QFileDialog, QMessageBox
+    QWidget, QVBoxLayout, QHBoxLayout, QFileDialog, QMessageBox, QAbstractItemView
 )
 from PySide6.QtCore import Signal
 from PySide6.QtGui import QDragEnterEvent, QDropEvent
@@ -41,7 +41,10 @@ class ShortcutCreatorView(QWidget):
 
         # 文件列表区域
         file_area_layout = QHBoxLayout()
-        self.file_list = ListWidget(row_handler=self._on_inputs_changed)
+        self.file_list = ListWidget(
+            row_handler=self._on_inputs_changed,
+            accept_drop=True
+        )
         self.file_actions = ButtonGrid(
             QVBoxLayout,
             ["添加文件", "添加文件夹", "添加文件夹下所有文件", "清空列表"],
@@ -151,19 +154,3 @@ class ShortcutCreatorView(QWidget):
 
     def _on_cancel(self):
         self.cancel_requested.emit()
-
-    # 重写拖拽事件
-    def dragEnterEvent(self, event: QDragEnterEvent):
-        if event.mimeData().hasUrls():
-            event.acceptProposedAction()
-
-    def dropEvent(self, event: QDropEvent):
-        if event.mimeData().hasUrls():
-            paths = []
-            for url in event.mimeData().urls():
-                path = url.toLocalFile()
-                if os.path.isfile(path) or os.path.isdir(path):
-                    paths.append(path)
-            if paths:
-                self.file_list.addItems(paths)
-            event.acceptProposedAction()
