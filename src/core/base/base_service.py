@@ -96,22 +96,22 @@ class BatchedService(BaseService):
         self.max_batch_size = max_batch_size
         self.batch_size = 0
 
-        self.tasks = []
+        self.task_queue = []
 
     def deliver(self, task: BaseTask):
         if self.batch_size >= self.max_batch_size:
             self._do_deliver()
         else:
-            self.tasks.append(task)
+            self.task_queue.append(task)
 
     def _do_deliver(self):
-        if not self.tasks:
+        if not self.task_queue:
             return
         self.timeout_timer.stop()
 
-        for task in self.tasks:
+        for task in self.task_queue:
             super().deliver(task)
         self.batch_size = 0
-        self.tasks.clear()
+        self.task_queue.clear()
 
         self.timeout_timer.start()
