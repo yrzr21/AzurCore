@@ -4,6 +4,7 @@
     "root_dir": "E:/develop/Projects/AzurCore/src",
     "log": {
         "log_dir": "E:/develop/Projects/AzurCore/resource/log",
+        "clear_before": true,
         "log_file": null,
         "level": "DEBUG",
         "formatter": {

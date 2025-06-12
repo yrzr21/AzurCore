@@ -8,6 +8,7 @@ from core.utils.config_manager import config
 
 class Logger:
     """一般集中在 task、controller、系统关键节点"""
+
     def __init__(self):
         self.level = None
         self.name = None
@@ -20,11 +21,13 @@ class Logger:
 
     def init(self):
         """初始化 logger """
+        if config["log"]["clear_before"]:
+            self._clear_log_dir()
+
         self.log_path = self._setup_logfile()
         self._restore_config()
         self._setup_log_handler()
 
-    # 日志输出接口
     def info(self, msg):
         self.logger.info(self._tag_msg(msg))
 
@@ -111,6 +114,14 @@ class Logger:
             tag = method_name
 
         return f"[{tag}] {msg}"
+
+    @staticmethod
+    def _clear_log_dir():
+        log_dir = config["log"]["log_dir"]
+        for filename in os.listdir(log_dir):
+            file_path = os.path.join(log_dir, filename)
+            if os.path.isfile(file_path) and filename.endswith(".log"):  # 只删除日志文件
+                os.remove(file_path)
 
 
 # 可能被多线程访问
