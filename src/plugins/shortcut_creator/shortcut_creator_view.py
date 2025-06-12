@@ -19,7 +19,7 @@ class ShortcutCreatorView(QWidget):
     create_requested = Signal(dict)  # 传递数据字典
     cancel_requested = Signal()
 
-    def __init__(self):
+    def __init__(self, default_selected_dir, default_target_dir):
         super().__init__()
         self.setWindowTitle("批量快捷方式创建器")
         self.setMinimumSize(600, 400)
@@ -28,6 +28,9 @@ class ShortcutCreatorView(QWidget):
         self.init_ui()
         self.set_ui_state(busy=False)
         self.setAcceptDrops(True)
+
+        self.default_selected_dir = default_selected_dir
+        self.default_target_dir = default_target_dir
 
     def init_ui(self):
         """create ui and connect signals"""
@@ -124,23 +127,23 @@ class ShortcutCreatorView(QWidget):
         )
 
     def _on_browse_target(self):
-        directory = browse_folder(self, "选择目录")
+        directory = browse_folder(self, "选择目录", self.default_target_dir)
         logger.debug(f"选择的文件夹: {directory}")
         if directory:
             self.target_input.setText(directory)
 
     def _on_add_files(self):
-        items = open_files(self, "选择文件")
+        items = open_files(self, "选择文件", self.default_selected_dir)
         if items:
             self.file_list.addItems(items)
 
     def _on_add_folder(self):
-        folder = browse_folder(self, "选择目录")
+        folder = browse_folder(self, "选择目录", self.default_selected_dir)
         if folder:
             self.file_list.addItem(folder)
 
     def _on_add_folder_files(self):
-        folder = browse_folder(self, "选择包含文件的文件夹")
+        folder = browse_folder(self, "选择包含文件的文件夹", self.default_selected_dir)
         if folder:
             files, _ = scan_folder_files(folder, max_depth=1000)
             self.file_list.addItems(files)

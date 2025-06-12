@@ -18,7 +18,15 @@
         "enabled": [
             "shortcut_creator",
             "test_plugin"
-        ]
+        ],
+        "shortcut_creator": {
+            "default_selected_dir": "E:\\current",
+            "default_target_dir": "E:\\current"
+        },
+        "encryptor": {
+            "interval": 1,
+            "max_load": 100
+        }
     },
     "ui_settings": {
         "recent_files": [
