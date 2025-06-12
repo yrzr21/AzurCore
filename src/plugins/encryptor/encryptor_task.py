@@ -1,5 +1,5 @@
 from core.base.base_task import BaseTask
-from core.utils.SecureEncryptor import SecureEncryptor
+from plugins.encryptor.utils.secure_encryptor import SecureEncryptor
 
 """service 只返回 str 给 controller"""
 
