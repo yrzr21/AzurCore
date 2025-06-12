@@ -17,6 +17,7 @@
         "directory": "E:/develop/Projects/AzurCore/src/plugins",
         "enabled": [
             "shortcut_creator",
+            "encryptor",
             "test_plugin"
         ],
         "shortcut_creator": {

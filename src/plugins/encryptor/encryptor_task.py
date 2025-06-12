@@ -1,6 +1,8 @@
 from core.base.base_task import BaseTask
 from core.utils.SecureEncryptor import SecureEncryptor
 
+"""service 只返回 str 给 controller"""
+
 
 class EncryptTask(BaseTask):
     def __init__(self, password, data):
@@ -11,7 +13,7 @@ class EncryptTask(BaseTask):
 
     def execute(self):
         self.result = self.encryptor.encrypt(self.data)
-        return self.result
+        return self.result.decode()
 
 
 class DecryptTask(BaseTask):
@@ -23,7 +25,7 @@ class DecryptTask(BaseTask):
 
     def execute(self):
         try:
-            decrypted = self.encryptor.decrypt(self.data)
+            decrypted = self.encryptor.decrypt_to_string(self.data)
             self.result = decrypted
             return self.result
         except Exception as e:
