@@ -99,7 +99,7 @@ class BatchedService(BaseService):
         self.task_queue = []
 
     def load_size(self, task):
-        """评估任务载荷，子类应重写此方法"""
+        """评估任务载荷，子类应重写此方法，重写一般基于 max_load"""
         raise NotImplementedError("子类必须实现 load_point 方法")
 
     def deliver(self, task: BaseTask):
@@ -112,6 +112,7 @@ class BatchedService(BaseService):
             return
         self.timeout_timer.stop()
 
+        self.active_tasks.extend(self.task_queue)
         for task in self.task_queue:
             super().deliver(task)
         self.batch_size = 0
