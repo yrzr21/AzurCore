@@ -81,14 +81,18 @@ class AsyncTask(BaseTask):
 
     async def run(self):
         try:
+            logger.info(f"{self.name} 开始执行")
+            self.is_running = True
             if self.timeout:
                 # await：注册调度，等待结果
                 result = await asyncio.wait_for(self.execute(), timeout=self.timeout)
             else:
                 result = await self.execute()
+            self.is_running = False
 
             success = not self._is_canceled
             logger.info(f"{self.name} 执行完毕")
             self.finished.emit(self, success, result)
         except Exception as e:
-            self.error_signal.emit(str(e))
+            logger.error(f"{self.name} 执行失败，出现异常：{str(e)}")
+            self.error.emit(self, f"任务失败: {str(e)}")
