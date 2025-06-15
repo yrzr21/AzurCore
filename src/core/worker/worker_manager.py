@@ -1,7 +1,18 @@
+"""
+IO 任务会与计算任务相互阻塞，所以分离IO与计算线程
+
+通信机制，即task如何与service通信：回调/QT信号，
+    前者增加了复杂度，后者性能有问题。
+    考虑到项目非高频爬虫，姑且使用QT信号机制
+"""
+
 from PySide6.QtCore import QObject, QThreadPool
 from core.base.base_task import BaseTask
 from core.utils.logger import logger
 
+
+# todo: 调度问题
+# todo：对于高频小数据量爬虫，可缓存数据，定期投放给 service
 
 class WorkerManager(QObject):
     """
