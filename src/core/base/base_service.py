@@ -1,5 +1,5 @@
 from core.utils.timeout_timer import TimeoutTimer
-from core.worker_manager import worker_manager
+from core.worker.worker_manager import worker_manager
 from PySide6.QtCore import Signal, QObject
 from core.base.base_task import BaseTask
 from core.utils.logger import logger
