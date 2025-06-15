@@ -22,3 +22,6 @@ class IOWorkerManager(QObject):
     def shutdown(self):
         for worker in self.workers:
             worker.stop()
+
+
+io_worker_manager = IOWorkerManager()
