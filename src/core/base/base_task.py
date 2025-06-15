@@ -1,3 +1,4 @@
+import asyncio
 from typing import Any
 
 from PySide6.QtCore import QObject, QRunnable, QThreadPool, Signal
@@ -6,7 +7,7 @@ from core.utils.logger import logger
 
 class BaseTask(QObject, QRunnable):
     """
-    任务实体基类，在一个新线程中
+    任务实体基类，运行在独立线程中
     子类需要使用 progress 汇报进度、实现 execute 接口
     子类中出现的异常，要么自行处理+logger，要么 raise 异常
     """
@@ -63,3 +64,31 @@ class BaseTask(QObject, QRunnable):
 
     def __str__(self):
         return self.name
+
+
+class AsyncTask(BaseTask):
+    """
+    IO异步任务，通过 Qt 信号与 service 通信返回结果
+    """
+
+    def __init__(self, name, timeout=None):
+        super().__init__(name)
+        self.timeout = timeout
+
+    async def execute(self):
+        """子类实现此异步任务逻辑，可能多次进行 await 并最终 return"""
+        raise NotImplementedError
+
+    async def run(self):
+        try:
+            if self.timeout:
+                # await：注册调度，等待结果
+                result = await asyncio.wait_for(self.execute(), timeout=self.timeout)
+            else:
+                result = await self.execute()
+
+            success = not self._is_canceled
+            logger.info(f"{self.name} 执行完毕")
+            self.finished.emit(self, success, result)
+        except Exception as e:
+            self.error_signal.emit(str(e))
