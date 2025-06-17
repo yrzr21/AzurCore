@@ -2,6 +2,7 @@ import random
 
 from PySide6.QtCore import QObject
 
+from core.base.base_task import AsyncTask
 from core.worker.io_worker import IOWorker
 
 
@@ -14,9 +15,10 @@ class IOWorkerManager(QObject):
         super().__init__()
         self.workers = [IOWorker() for _ in range(num_workers)]
 
-    def submit(self, task):
+    def submit(self, task: AsyncTask):
         """随机挑选一个worker提交任务"""
         worker = random.choice(self.workers)
+        task.loop = worker.loop
         worker.submit(task.run)
 
     def shutdown(self):
