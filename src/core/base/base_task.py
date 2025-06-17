@@ -74,6 +74,7 @@ class AsyncTask(BaseTask):
     def __init__(self, name, timeout=None):
         super().__init__(name)
         self.timeout = timeout
+        self.loop = None
 
     async def execute(self):
         """子类实现此异步任务逻辑，可能多次进行 await 并最终 return"""

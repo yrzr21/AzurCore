@@ -28,6 +28,27 @@
         "encryptor": {
             "interval": 1,
             "max_load": 100
+        },
+        "crawler": {
+            "output_dir": "E:\\develop\\Projects\\AzurCore\\resource\\crawler",
+            "proxies": [],
+            "browser": {
+                "type": "chromium",
+                "headless": true,
+                "args": [
+                    "--disable-blink-features=AutomationControlled",
+                    "--disable-infobars"
+                ]
+            },
+            "users": {
+                "user_root_dir": "C:\\Users\\wangj\\Desktop\\test",
+                "ids": [
+                    1,
+                    2,
+                    3,
+                    4
+                ]
+            }
         }
     },
     "ui_settings": {
